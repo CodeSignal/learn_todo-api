@@ -1,17 +1,21 @@
-# Use Python 3.10.6 base image
+# Use Python 3.10.6 as the base image for the container
 FROM python:3.10.6
 
-# Set the working directory in the container
-WORKDIR /app
+# Copy the requirements.txt file to the container's root directory
+COPY requirements.txt .
 
-# Copy the entire application directory to the container
-COPY . .
-
-# Install Python dependencies
+# Install Python dependencies listed in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 8000 for the Flask app
+# Expose port 8000 to make the Flask app accessible
+# This is a documentation instruction and does not map the port to the host
 EXPOSE 8000
 
-# Command to run the Flask app
+# Copy the app folder containing the Flask application to /app in the container
+COPY app /app
+
+# Set the working directory to /app
+WORKDIR /app
+
+# Run the Flask app when the container starts
 CMD ["python", "main.py"]
