@@ -1,8 +1,8 @@
 class Todo:
     """A class representing a single TODO item."""
-    def __init__(self, id, task, done=False, description=None):
+    def __init__(self, id, title, done=False, description=None):
         self.id = id
-        self.task = task
+        self.title = title
         self.done = done
         self.description = description
 
@@ -10,7 +10,7 @@ class Todo:
         """Convert the TODO item to a dictionary."""
         return {
             "id": self.id,
-            "task": self.task,
+            "title": self.title,
             "done": self.done,
             "description": self.description,
         }
