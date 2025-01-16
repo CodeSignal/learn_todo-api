@@ -81,4 +81,4 @@ class TodoService:
         if todo_id not in todos:
             return jsonify({"error": "Todo not found"}), 404
         del todos[todo_id]
-        return jsonify({"message": "Todo deleted successfully"}), 200
+        return '', 204
