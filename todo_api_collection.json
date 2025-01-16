@@ -1,0 +1,337 @@
+{
+	"info": {
+		"name": "Todo API Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get All Todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response is an array\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(Array.isArray(responseData)).to.be.true;",
+							"});",
+							"",
+							"pm.test(\"Todo items have correct structure\", function () {",
+							"    const responseData = pm.response.json();",
+							"    if (responseData.length > 0) {",
+							"        pm.expect(responseData[0]).to.have.property('id');",
+							"        pm.expect(responseData[0]).to.have.property('title');",
+							"        pm.expect(responseData[0]).to.have.property('description');",
+							"        pm.expect(responseData[0]).to.have.property('done');",
+							"    }",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": {
+					"raw": "http://localhost:8000/todos?done=true&title=call",
+					"host": ["http://localhost:8000"],
+					"path": ["todos"],
+					"query": [
+						{
+							"key": "done",
+							"value": "true",
+							"description": "Filter by done status"
+						},
+						{
+							"key": "title",
+							"value": "call",
+							"description": "Filter by title prefix"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "Get Single Todo - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Todo has correct structure\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData).to.have.property('title');",
+							"    pm.expect(responseData).to.have.property('description');",
+							"    pm.expect(responseData).to.have.property('done');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": "http://localhost:8000/todos/1"
+			}
+		},
+		{
+			"name": "Get Single Todo - Not Found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.error).to.eql('Todo not found');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": "http://localhost:8000/todos/999"
+			}
+		},
+		{
+			"name": "Create Todo - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Created todo has correct structure\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData.title).to.eql('Test Todo');",
+							"    pm.expect(responseData.description).to.eql('This is a test todo item');",
+							"    pm.expect(responseData.done).to.be.false;",
+							"});",
+							"",
+							"if (pm.response.code === 201) {",
+							"    pm.collectionVariables.set(\"todo_id\", pm.response.json().id);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"url": "http://localhost:8000/todos",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Test Todo\",\n    \"description\": \"This is a test todo item\",\n    \"done\": false\n}"
+				}
+			}
+		},
+		{
+			"name": "Create Todo - Missing Title",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.error).to.eql('Invalid request. \\'title\\' is required.');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"url": "http://localhost:8000/todos",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"description\": \"Missing required title field\",\n    \"done\": false\n}"
+				}
+			}
+		},
+		{
+			"name": "Update Todo - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Todo was updated correctly\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.title).to.eql('Updated Todo');",
+							"    pm.expect(responseData.description).to.eql('This todo has been updated');",
+							"    pm.expect(responseData.done).to.be.true;",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"url": "http://localhost:8000/todos/{{todo_id}}",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Updated Todo\",\n    \"description\": \"This todo has been updated\",\n    \"done\": true\n}"
+				}
+			}
+		},
+		{
+			"name": "Update Todo - Missing Fields",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.error).to.eql('Invalid request. \\'title\\', \\'done\\', and \\'description\\' fields are required.');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"url": "http://localhost:8000/todos/{{todo_id}}",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Updated Todo\"\n}"
+				}
+			}
+		},
+		{
+			"name": "Patch Todo - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Only specified fields were updated\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.done).to.be.true;",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"url": "http://localhost:8000/todos/{{todo_id}}",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"done\": true\n}"
+				}
+			}
+		},
+		{
+			"name": "Delete Todo - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"url": "http://localhost:8000/todos/{{todo_id}}"
+			}
+		},
+		{
+			"name": "Delete Todo - Not Found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.error).to.eql('Todo not found');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"url": "http://localhost:8000/todos/999"
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "todo_id",
+			"value": ""
+		}
+	]
+} 
