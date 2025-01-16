@@ -1,0 +1,28 @@
+{
+    "todos": [
+        {
+            "id": 1,
+            "title": "Buy groceries",
+            "description": "Milk, eggs, bread, and coffee",
+            "done": false
+        },
+        {
+            "id": 2,
+            "title": "Call mom",
+            "description": "Check in and catch up",
+            "done": true
+        },
+        {
+            "id": 3,
+            "title": "Finish project report",
+            "description": "Summarize Q4 performance metrics",
+            "done": false
+        },
+        {
+            "id": 4,
+            "title": "Workout",
+            "description": "30 minutes of cardio",
+            "done": true
+        }
+    ]
+} 
