@@ -1,14 +1,27 @@
 from flask import jsonify, request
 from models.todo import Todo
+import json
+import os
 
-todos = {
-    1: Todo(1, "Buy groceries", done=False, description="Milk, eggs, bread, and coffee"),
-    2: Todo(2, "Call mom", done=True, description="Check in and catch up"),
-    3: Todo(3, "Finish project report", done=False, description="Summarize Q4 performance metrics"),
-    4: Todo(4, "Workout", done=True, description="30 minutes of cardio"),
-}
+# Load initial todos from JSON file
+def load_initial_todos():
+    json_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'initial_todos.json')
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+        loaded_todos = {}
+        for todo_data in data['todos']:
+            todo_id = todo_data['id']
+            loaded_todos[todo_id] = Todo(
+                todo_id,
+                todo_data['title'],
+                todo_data['done'],
+                todo_data['description']
+            )
+        # Calculate next_id based on the highest id in the todos
+        next_id = max(todo.id for todo in loaded_todos.values()) + 1
+        return loaded_todos, next_id
 
-next_id = 5
+todos, next_id = load_initial_todos()
 
 class TodoService:
     @staticmethod
