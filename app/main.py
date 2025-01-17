@@ -2,6 +2,7 @@ from flask import Flask
 from routes.todos import todos_bp
 from routes.errors import errors_bp
 from routes.docs import docs_bp
+from routes.notes import notes_bp
 
 def create_app():
     app = Flask(__name__)
@@ -10,6 +11,7 @@ def create_app():
     app.register_blueprint(todos_bp, url_prefix="/todos")
     app.register_blueprint(errors_bp)
     app.register_blueprint(docs_bp, url_prefix="/docs")
+    app.register_blueprint(notes_bp, url_prefix="/notes")
 
     return app
 

@@ -26,8 +26,27 @@ todos, next_id = load_initial_todos()
 class TodoService:
     @staticmethod
     def get_all_todos(request):
+        """Get all todos with optional filtering and pagination.
+
+        Query Parameters:
+            done (str, optional): Filter by completion status ('true' or 'false')
+            title (str, optional): Filter todos by title prefix (case-insensitive)
+            page (int, optional): Page number for pagination (starts at 1)
+            limit (int, optional): Number of items per page
+
+        Returns:
+            tuple: JSON response containing list of todos and HTTP status code
+            
+        Examples:
+            GET /todos - Returns all todos
+            GET /todos?done=true - Returns all completed todos
+            GET /todos?title=buy - Returns todos with titles starting with 'buy'
+            GET /todos?page=1&limit=10 - Returns first 10 todos
+        """
         done = request.args.get("done", type=str)
         title_prefix = request.args.get("title", type=str)
+        page = request.args.get("page", type=int)
+        limit = request.args.get("limit", type=int)
 
         if done is not None:
             done = done.lower() == 'true'
@@ -39,6 +58,12 @@ class TodoService:
 
         if title_prefix:
             results = [todo for todo in results if todo.title.lower().startswith(title_prefix.lower())]
+
+        # Apply pagination only if both page and limit parameters are provided
+        if page is not None and limit is not None:
+            start_idx = (page - 1) * limit
+            end_idx = start_idx + limit
+            results = results[start_idx:end_idx]
 
         return jsonify([todo.to_dict() for todo in results]), 200
 
