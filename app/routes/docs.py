@@ -8,10 +8,12 @@ def api_docs():
     docs = {
         "/todos": {
             "GET": {
-                "description": "Fetch all TODO items.",
+                "description": "Fetch all TODO items with optional filtering and pagination.",
                 "query_params": {
                     "done": "Filter by completion status (true/false).",
-                    "title": "Filter by TODO item title prefix."
+                    "title": "Filter by TODO item title prefix.",
+                    "page": "Page number for pagination (optional, starts at 1).",
+                    "limit": "Number of items per page (optional)."
                 }
             },
             "POST": {
