@@ -1,5 +1,5 @@
 import os
-from flask import send_file, jsonify, current_app, make_response
+from flask import send_file, jsonify, current_app
 from werkzeug.utils import secure_filename
 
 class NoteService:
@@ -79,6 +79,6 @@ class NoteService:
             
         try:
             os.remove(note_path)
-            return make_response('', 204)
+            return '', 204
         except Exception as e:
             return jsonify({'error': 'Failed to delete note'}), 500 
