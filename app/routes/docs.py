@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app
+from flask import Blueprint, current_app, json, Response
 from auth.auth_config import AuthMethod
 
 docs_bp = Blueprint("docs", __name__)
@@ -111,7 +111,10 @@ def api_docs():
             }
         }
     })
-    return jsonify(docs), 200
+    return Response(
+        json.dumps(docs, sort_keys=False, indent=2) + "\n",
+        mimetype='application/json'
+    ), 200
 
 def _get_auth_docs():
     """Return authentication documentation based on current auth method."""
