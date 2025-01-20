@@ -1,11 +1,18 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, current_app
+from auth.auth_config import AuthMethod
 
 docs_bp = Blueprint("docs", __name__)
 
 @docs_bp.route("", methods=["GET"])
 def api_docs():
     """Provide comprehensive API documentation."""
-    docs = {
+    docs = {}
+    
+    auth_docs = _get_auth_docs()
+    if auth_docs:
+        docs["authentication"] = auth_docs
+        
+    docs.update({
         "/todos": {
             "GET": {
                 "description": "Fetch all TODO items with optional filtering and pagination.",
@@ -103,5 +110,69 @@ def api_docs():
                 }
             }
         }
-    }
+    })
     return jsonify(docs), 200
+
+def _get_auth_docs():
+    """Return authentication documentation based on current auth method."""
+    auth_config = current_app.config.get('auth_config')
+    if not auth_config or auth_config.auth_method == AuthMethod.NONE:
+        return None
+    
+    auth_docs = {
+        AuthMethod.API_KEY: {
+            "method": "api_key",
+            "description": "API Key authentication required for protected endpoints.",
+            "how_to_authenticate": "Include your API key in the X-API-Key header for all requests.",
+            "example": {
+                "headers": {
+                    "X-API-Key": "your-api-key-here"
+                }
+            },
+            "protected_endpoints": ["/todos/*", "/notes/*"]
+        },
+        AuthMethod.JWT: {
+            "method": "jwt",
+            "description": "JWT (JSON Web Token) authentication required for protected endpoints.",
+            "how_to_authenticate": "1. Get a token via /auth/login or /auth/signup\n2. Include the token in the Authorization header.",
+            "endpoints": {
+                "/auth/signup": {
+                    "method": "POST",
+                    "body": {"username": "string", "password": "string"},
+                    "response": {"token": "string"}
+                },
+                "/auth/login": {
+                    "method": "POST",
+                    "body": {"username": "string", "password": "string"},
+                    "response": {"token": "string"}
+                }
+            },
+            "example": {
+                "headers": {
+                    "Authorization": "Bearer your-jwt-token-here"
+                }
+            },
+            "protected_endpoints": ["/todos/*", "/notes/*"]
+        },
+        AuthMethod.SESSION: {
+            "method": "session",
+            "description": "Session-based authentication required for protected endpoints.",
+            "how_to_authenticate": "1. Login via /auth/login or signup via /auth/signup\n2. Session cookie will be automatically managed by your browser.",
+            "endpoints": {
+                "/auth/signup": {
+                    "method": "POST",
+                    "body": {"username": "string", "password": "string"}
+                },
+                "/auth/login": {
+                    "method": "POST",
+                    "body": {"username": "string", "password": "string"}
+                },
+                "/auth/logout": {
+                    "method": "POST"
+                }
+            },
+            "protected_endpoints": ["/todos/*", "/notes/*"]
+        }
+    }
+    
+    return auth_docs.get(auth_config.auth_method, {"error": "Unknown authentication method"})

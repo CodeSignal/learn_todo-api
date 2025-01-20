@@ -400,6 +400,75 @@
 				"method": "DELETE",
 				"url": "http://localhost:8000/todos/999"
 			}
+		},
+		{
+			"name": "Get API Documentation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has correct structure\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    // Check todos endpoints",
+							"    pm.expect(responseData).to.have.property('/todos');",
+							"    pm.expect(responseData[\"/todos\"]).to.have.property('GET');",
+							"    pm.expect(responseData[\"/todos\"]).to.have.property('POST');",
+							"    ",
+							"    // Check single todo endpoints",
+							"    pm.expect(responseData).to.have.property('/todos/<int:todo_id>');",
+							"    pm.expect(responseData[\"/todos/<int:todo_id>\"]).to.have.property('GET');",
+							"    pm.expect(responseData[\"/todos/<int:todo_id>\"]).to.have.property('PUT');",
+							"    pm.expect(responseData[\"/todos/<int:todo_id>\"]).to.have.property('PATCH');",
+							"    pm.expect(responseData[\"/todos/<int:todo_id>\"]).to.have.property('DELETE');",
+							"    ",
+							"    // Check notes endpoints",
+							"    pm.expect(responseData).to.have.property('/notes');",
+							"    pm.expect(responseData[\"/notes\"]).to.have.property('POST');",
+							"    pm.expect(responseData).to.have.property('/notes/<note_name>');",
+							"    pm.expect(responseData[\"/notes/<note_name>\"]).to.have.property('GET');",
+							"    pm.expect(responseData[\"/notes/<note_name>\"]).to.have.property('DELETE');",
+							"});",
+							"",
+							"// Test authentication documentation based on config",
+							"pm.test(\"Authentication documentation is correct\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    // If no auth is configured, authentication section should not exist",
+							"    if (!pm.environment.get('auth_method') || pm.environment.get('auth_method') === 'none') {",
+							"        pm.expect(responseData).to.not.have.property('authentication');",
+							"    }",
+							"    // If auth is configured, check its structure",
+							"    else if (responseData.authentication) {",
+							"        pm.expect(responseData.authentication).to.have.property('method');",
+							"        pm.expect(responseData.authentication).to.have.property('description');",
+							"        pm.expect(responseData.authentication).to.have.property('protected_endpoints');",
+							"        ",
+							"        // Check specific auth method properties",
+							"        const authMethod = responseData.authentication.method;",
+							"        if (authMethod === 'api_key') {",
+							"            pm.expect(responseData.authentication).to.have.property('how_to_authenticate');",
+							"            pm.expect(responseData.authentication).to.have.property('example');",
+							"        } else if (authMethod === 'jwt' || authMethod === 'session') {",
+							"            pm.expect(responseData.authentication).to.have.property('endpoints');",
+							"            pm.expect(responseData.authentication.endpoints).to.have.property('/auth/login');",
+							"            pm.expect(responseData.authentication.endpoints).to.have.property('/auth/signup');",
+							"        }",
+							"    }",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"url": "http://localhost:8000/docs"
+			}
 		}
 	],
 	"variable": [

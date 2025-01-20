@@ -15,15 +15,15 @@ def create_app(auth_config):
     app = Flask(__name__)
     app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
     app.config['SECRET_KEY'] = secrets.token_hex(32)
+    app.config['auth_config'] = auth_config
 
     # Initialize authentication
     init_auth_routes(auth_config)
     auth_middleware = AuthMiddleware(auth_config)
     
-    # Register blueprints
+    # Register protected blueprints
     protected_blueprints = {
         todos_bp: "/todos",
-        docs_bp: "/docs",
         notes_bp: "/notes"
     }
     
@@ -33,6 +33,7 @@ def create_app(auth_config):
 
     # Register unprotected routes
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(docs_bp, url_prefix="/docs")
     app.register_blueprint(errors_bp)
 
     return app

@@ -109,6 +109,45 @@
 							"path": ["todos"]
 						}
 					}
+				},
+				{
+					"name": "Get API Documentation with API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('API Key auth documentation is correct', function() {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.have.property('authentication');",
+									"    const auth = responseData.authentication;",
+									"",
+									"    pm.expect(auth.method).to.equal('api_key');",
+									"    pm.expect(auth).to.have.property('description');",
+									"    pm.expect(auth).to.have.property('how_to_authenticate');",
+									"    pm.expect(auth).to.have.property('example');",
+									"    pm.expect(auth.example.headers).to.have.property('X-API-Key');",
+									"    pm.expect(auth.protected_endpoints).to.include('/todos/*');",
+									"    pm.expect(auth.protected_endpoints).to.include('/notes/*');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "http://localhost:8000/docs",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["docs"]
+						}
+					}
 				}
 			]
 		},
@@ -336,6 +375,54 @@
 							"path": ["auth", "logout"]
 						}
 					}
+				},
+				{
+					"name": "Get API Documentation with JWT",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('JWT auth documentation is correct', function() {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.have.property('authentication');",
+									"    const auth = responseData.authentication;",
+									"",
+									"    pm.expect(auth.method).to.equal('jwt');",
+									"    pm.expect(auth).to.have.property('description');",
+									"    pm.expect(auth).to.have.property('how_to_authenticate');",
+									"    pm.expect(auth).to.have.property('endpoints');",
+									"    pm.expect(auth.endpoints).to.have.property('/auth/login');",
+									"    pm.expect(auth.endpoints).to.have.property('/auth/signup');",
+									"    pm.expect(auth.example.headers).to.have.property('Authorization');",
+									"    pm.expect(auth.protected_endpoints).to.include('/todos/*');",
+									"    pm.expect(auth.protected_endpoints).to.include('/notes/*');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8000/docs",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["docs"]
+						}
+					}
 				}
 			]
 		},
@@ -553,6 +640,47 @@
 							"host": ["localhost"],
 							"port": "8000",
 							"path": ["todos"]
+						}
+					}
+				},
+				{
+					"name": "8. Get API Documentation with Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Session auth documentation is correct', function() {",
+									"    const responseData = pm.response.json();",
+									"    pm.expect(responseData).to.have.property('authentication');",
+									"    const auth = responseData.authentication;",
+									"",
+									"    pm.expect(auth.method).to.equal('session');",
+									"    pm.expect(auth).to.have.property('description');",
+									"    pm.expect(auth).to.have.property('how_to_authenticate');",
+									"    pm.expect(auth).to.have.property('endpoints');",
+									"    pm.expect(auth.endpoints).to.have.property('/auth/login');",
+									"    pm.expect(auth.endpoints).to.have.property('/auth/signup');",
+									"    pm.expect(auth.endpoints).to.have.property('/auth/logout');",
+									"    pm.expect(auth.protected_endpoints).to.include('/todos/*');",
+									"    pm.expect(auth.protected_endpoints).to.include('/notes/*');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "http://localhost:8000/docs",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["docs"]
 						}
 					}
 				}
