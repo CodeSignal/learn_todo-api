@@ -24,34 +24,54 @@ Todo API is a simple RESTful service for managing a to-do list, allowing users t
 
 3. The API will be available at `http://localhost:8000`.
 
+## Configuration
+
+The API's authentication is configured through `config.yml` in the root directory:
+
+```yaml
+auth:
+  method: jwt  # Options: none, api_key, jwt, session
+  secret: your-secret-key-here
+```
+
+### Authentication Methods
+
+1. No Authentication (`none`):
+   ```yaml
+   auth:
+     method: none
+   ```
+   All endpoints will be public.
+
+2. API Key Authentication (`api_key`):
+   ```yaml
+   auth:
+     method: api_key
+     secret: your-secure-api-key
+   ```
+   Clients must include the API key in the `X-API-Key` header.
+
+3. JWT Authentication (`jwt`):
+   ```yaml
+   auth:
+     method: jwt
+     secret: your-jwt-secret
+   ```
+   Clients must obtain a JWT token via login/signup and include it in the `Authorization: Bearer <token>` header.
+
+4. Session Authentication (`session`):
+   ```yaml
+   auth:
+     method: session
+     secret: your-session-secret
+   ```
+   Uses browser sessions for authentication.
+
 ## Running the API
 
-### Basic Usage (No Authentication)
-Run the API with public access to all endpoints:
+Simply run:
 ```bash
 python app/main.py
 ```
-This is equivalent to explicitly disabling auth:
-```bash
-python app/main.py --auth none
-```
 
-### Protected Mode
-Enable authentication to protect all endpoints (except /auth and error handlers):
-
-1. API Key authentication:
-   ```bash
-   python app/main.py --auth api_key --secret "your-secure-api-key"
-   ```
-
-2. JWT authentication:
-   ```bash
-   python app/main.py --auth jwt --secret "my-jwt-secret"
-   ```
-
-3. Session authentication:
-   ```bash
-   python app/main.py --auth session --secret "my-session-secret"
-   ```
-
-If you don't provide a secret, default values will be used, but this is not recommended for production.
+The API will read the configuration from `config.yml`. If the file doesn't exist, it will default to no authentication.

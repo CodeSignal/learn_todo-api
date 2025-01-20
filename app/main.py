@@ -7,7 +7,8 @@ from routes.auth import auth_bp, init_auth_routes
 from auth.auth_config import AuthConfig, AuthMethod
 from auth.middleware import AuthMiddleware
 import secrets
-import argparse
+import yaml
+import os
 
 def create_app(auth_config):
     """Create and configure the Flask application."""
@@ -36,16 +37,27 @@ def create_app(auth_config):
 
     return app
 
-def parse_arguments():
-    """Parse command line arguments for authentication configuration."""
-    parser = argparse.ArgumentParser(description='Run the Todo API')
-    parser.add_argument('--auth', 
-                       choices=['none', 'api_key', 'jwt', 'session'],
-                       default='none',
-                       help='Authentication method to use (default: none)')
-    parser.add_argument('--secret',
-                       help='Secret key for the chosen authentication method')
-    return parser.parse_args()
+def load_config():
+    """Load configuration from config.yml file."""
+    config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yml')
+    
+    if not os.path.exists(config_path):
+        print(f"Warning: config.yml not found at {config_path}, using default configuration (no auth)")
+        return "none", None
+        
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            
+        auth_config = config.get('auth', {})
+        method = auth_config.get('method', 'none')
+        secret = auth_config.get('secret')
+        
+        return method, secret
+    except Exception as e:
+        print(f"Error loading config.yml: {e}")
+        print("Using default configuration (no auth)")
+        return "none", None
 
 def setup_auth_config(auth_method, secret=None):
     """Configure authentication based on the specified method."""
@@ -57,25 +69,24 @@ def setup_auth_config(auth_method, secret=None):
     elif auth_method == "api_key":
         secret = secret or "your-secure-api-key"
         auth_config.configure_api_key(secret)
-        print(f"Running with API Key authentication (key: {secret})")
+        print(f"Running with API Key authentication")
     elif auth_method == "jwt":
         secret = secret or "your-jwt-secret-key"
         auth_config.configure_jwt(secret)
-        print(f"Running with JWT authentication (secret: {secret})")
+        print(f"Running with JWT authentication")
     elif auth_method == "session":
         secret = secret or "your-session-secret-key"
         auth_config.configure_session(secret)
-        print(f"Running with Session authentication (secret: {secret})")
+        print(f"Running with Session authentication")
     else:
         raise ValueError(f"Invalid authentication method: {auth_method}")
     
     return auth_config
 
 if __name__ == "__main__":
-    args = parse_arguments()
-    
     try:
-        auth_config = setup_auth_config(args.auth, args.secret)
+        auth_method, secret = load_config()
+        auth_config = setup_auth_config(auth_method, secret)
         app = create_app(auth_config)
         app.run(host="0.0.0.0", port=8000)
     except ValueError as e:
