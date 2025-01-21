@@ -1,6 +1,7 @@
 import jwt
 import datetime
-from auth.auth_config import AuthConfig, AuthMethod
+import secrets
+from config.auth_config import AuthConfig, AuthMethod
 from models.user import User
 from flask import session, jsonify
 
@@ -10,20 +11,37 @@ auth_config = None
 # List to store User objects
 users = []
 
+# In-memory store for refresh tokens and blacklisted tokens
+refresh_tokens = {}
+blacklisted_tokens = set()
+
 def init_auth_service(config: AuthConfig):
     global auth_config
     auth_config = config
 
+def generate_refresh_token(username):
+    refresh_token = secrets.token_hex(32)
+    refresh_tokens[refresh_token] = username
+    return refresh_token
+
+def validate_refresh_token(refresh_token):
+    return refresh_tokens.get(refresh_token)
+
+def blacklist_token(token):
+    blacklisted_tokens.add(token)
+
 def generate_jwt_token(username):
-    return jwt.encode(
+    access_token = jwt.encode(
         {
             "sub": username,
             "iat": datetime.datetime.utcnow(),
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1)
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=15)  # Shorter expiry for access token
         },
         auth_config.jwt_secret,
         algorithm="HS256"
     )
+    refresh_token = generate_refresh_token(username)
+    return access_token, refresh_token
 
 # Function to check if a username already exists
 def is_username_taken(username):
@@ -53,10 +71,11 @@ def login_user(data):
         return jsonify({"error": "Username and password are required"}), 400
     
     if auth_config.auth_method == AuthMethod.JWT:
-        token = generate_jwt_token(data["username"])
+        access_token, refresh_token = generate_jwt_token(data["username"])
         return jsonify({
             "message": "Login successful",
-            "token": token if isinstance(token, str) else token.decode('utf-8')
+            "access_token": access_token,
+            "refresh_token": refresh_token
         })
     
     elif auth_config.auth_method == AuthMethod.SESSION:

@@ -1,7 +1,8 @@
 from functools import wraps
 from flask import request, jsonify, session, Blueprint
 import jwt
-from .auth_config import AuthMethod, AuthConfig
+from config.auth_config import AuthMethod, AuthConfig
+from services.auth_service import blacklisted_tokens
 
 class AuthMiddleware:
     def __init__(self, auth_config: AuthConfig):
@@ -43,6 +44,9 @@ class AuthMiddleware:
             return jsonify({"error": "JWT token is required"}), 401
         
         token = auth_header.split(' ')[1]
+        if token in blacklisted_tokens:
+            return jsonify({"error": "You have been logged out. Please log in again."}), 401
+        
         try:
             jwt.decode(
                 token, 

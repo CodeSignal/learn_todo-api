@@ -1,4 +1,4 @@
-from auth.auth_config import AuthConfig
+from config.auth_config import AuthConfig
 
 def setup_auth_config(auth_method, secret=None):
     """Configure authentication based on the specified method."""

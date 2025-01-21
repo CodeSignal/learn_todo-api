@@ -4,7 +4,7 @@ from routes.errors import errors_bp
 from routes.docs import docs_bp
 from routes.notes import notes_bp
 from routes.auth import auth_bp, init_auth_routes
-from auth.middleware import AuthMiddleware
+from middleware.auth_middleware import AuthMiddleware
 from utils.config import load_config, load_initial_todos
 from utils.auth import setup_auth_config
 from services.auth_service import init_auth_service

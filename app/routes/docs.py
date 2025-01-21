@@ -1,5 +1,5 @@
 from flask import Blueprint, current_app, json, Response
-from auth.auth_config import AuthMethod
+from config.auth_config import AuthMethod
 
 docs_bp = Blueprint("docs", __name__)
 
