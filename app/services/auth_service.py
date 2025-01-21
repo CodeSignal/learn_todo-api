@@ -1,6 +1,6 @@
 import jwt
 import datetime
-from auth.auth_config import AuthConfig, AuthMethod
+from config.auth_config import AuthConfig, AuthMethod
 from models.user import User
 from flask import session, jsonify
 

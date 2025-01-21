@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 import jwt
 import datetime
-from auth.auth_config import AuthMethod, AuthConfig
+from config.auth_config import AuthMethod, AuthConfig
 from services.auth_service import generate_jwt_token, is_username_taken, add_user, signup_user, login_user, logout_user
 
 auth_bp = Blueprint("auth", __name__)

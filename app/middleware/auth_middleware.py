@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import request, jsonify, session, Blueprint
 import jwt
-from .auth_config import AuthMethod, AuthConfig
+from config.auth_config import AuthMethod, AuthConfig
 
 class AuthMiddleware:
     def __init__(self, auth_config: AuthConfig):
