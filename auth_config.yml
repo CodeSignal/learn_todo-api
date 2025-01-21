@@ -1,0 +1,10 @@
+auth:
+  # Choose one of: none, api_key, jwt, session
+  method: none
+  
+  # For API key authentication:
+  # api_key: your-secure-api-key
+  
+  # For JWT or session authentication:
+  # secret: your-secret-key-here
+  

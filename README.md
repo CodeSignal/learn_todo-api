@@ -24,17 +24,9 @@ Todo API is a simple RESTful service for managing a to-do list, allowing users t
 
 3. The API will be available at `http://localhost:8000`.
 
-## Configuration
+## Authentication Methods
 
-The API's authentication is configured through `config.yml` in the root directory:
-
-```yaml
-auth:
-  method: jwt  # Options: none, api_key, jwt, session
-  secret: your-secret-key-here
-```
-
-### Authentication Methods
+The API's authentication is configured through `auth_config.yml` in the root directory:
 
 1. No Authentication (`none`):
    ```yaml
@@ -47,7 +39,7 @@ auth:
    ```yaml
    auth:
      method: api_key
-     secret: your-secure-api-key
+     api_key: your-secure-api-key
    ```
    Clients must include the API key in the `X-API-Key` header.
 
@@ -74,4 +66,4 @@ Simply run:
 python app/main.py
 ```
 
-The API will read the configuration from `config.yml`. If the file doesn't exist, it will default to no authentication.
+The API will read the configuration from `auth_config.yml`. If the file doesn't exist, it will default to no authentication.
