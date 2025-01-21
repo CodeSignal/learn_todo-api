@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, session
 import jwt
 import datetime
 from auth.auth_config import AuthMethod, AuthConfig
+from services.auth_service import generate_jwt_token, is_username_taken, add_user, signup_user, login_user, logout_user
 
 auth_bp = Blueprint("auth", __name__)
 auth_config = None
@@ -27,28 +28,7 @@ def signup():
         return jsonify({"error": "Signup not available with API key authentication"}), 400
     
     data = request.get_json()
-    if not data or "username" not in data or "password" not in data:
-        return jsonify({"error": "Username and password are required"}), 400
-    
-    # In a real application, you would:
-    # 1. Check if username already exists
-    # 2. Hash the password
-    # 3. Store in database
-    
-    if auth_config.auth_method == AuthMethod.JWT:
-        token = generate_jwt_token(data["username"])
-        # Ensure token is a string
-        return jsonify({
-            "message": "Signup successful",
-            "token": token if isinstance(token, str) else token.decode('utf-8')
-        }), 201
-    
-    elif auth_config.auth_method == AuthMethod.SESSION:
-        session["authenticated"] = True
-        session["username"] = data["username"]
-        return jsonify({"message": "Signup successful"}), 201
-    
-    return jsonify({"error": "Invalid authentication method"}), 500
+    return signup_user(data)
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
@@ -56,27 +36,7 @@ def login():
         return jsonify({"error": "Login not available with API key authentication"}), 400
     
     data = request.get_json()
-    if not data or "username" not in data or "password" not in data:
-        return jsonify({"error": "Username and password are required"}), 400
-    
-    # In a real application, you would:
-    # 1. Verify username exists
-    # 2. Verify password hash matches
-    
-    if auth_config.auth_method == AuthMethod.JWT:
-        token = generate_jwt_token(data["username"])
-        # Ensure token is a string
-        return jsonify({
-            "message": "Login successful",
-            "token": token if isinstance(token, str) else token.decode('utf-8')
-        })
-    
-    elif auth_config.auth_method == AuthMethod.SESSION:
-        session["authenticated"] = True
-        session["username"] = data["username"]
-        return jsonify({"message": "Login successful"})
-    
-    return jsonify({"error": "Invalid authentication method"}), 500
+    return login_user(data)
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():

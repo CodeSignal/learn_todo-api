@@ -7,6 +7,7 @@ from routes.auth import auth_bp, init_auth_routes
 from auth.middleware import AuthMiddleware
 from utils.config import load_config, load_initial_todos
 from utils.auth import setup_auth_config
+from services.auth_service import init_auth_service
 import secrets
 
 def create_app(auth_config):
@@ -61,6 +62,9 @@ if __name__ == "__main__":
         
         # Set up authentication based on configuration
         auth_config = setup_auth_config(auth_method, secret)
+        
+        # Initialize auth service
+        init_auth_service(auth_config)
         
         # Create and configure the application
         app = create_app(auth_config)
