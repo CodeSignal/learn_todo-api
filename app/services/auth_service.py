@@ -45,19 +45,7 @@ def signup_user(data):
     
     add_user(data["username"], data["password"])
     
-    if auth_config.auth_method == AuthMethod.JWT:
-        token = generate_jwt_token(data["username"])
-        return jsonify({
-            "message": "Signup successful",
-            "token": token if isinstance(token, str) else token.decode('utf-8')
-        }), 201
-    
-    elif auth_config.auth_method == AuthMethod.SESSION:
-        session["authenticated"] = True
-        session["username"] = data["username"]
-        return jsonify({"message": "Signup successful"}), 201
-    
-    return jsonify({"error": "Invalid authentication method"}), 500
+    return jsonify({"message": "Signup successful. Please log in to continue."}), 201
 
 
 def login_user(data):
