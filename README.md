@@ -59,6 +59,10 @@ The API's authentication is configured through `auth_config.yml` in the root dir
    ```
    Uses browser sessions for authentication.
 
+## Initial Data
+
+The project comes with `initial_todos.json`, which contains a set of predefined todo items that serve as sample data. This file includes example todos with various states (completed and pending) to help you get started with testing the API immediately.
+
 ## Running the API
 
 Simply run:
