@@ -277,17 +277,25 @@
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"if (jsonData.token) {",
-									"    pm.environment.set('jwt_token', jsonData.token);",
+									"if (jsonData.access_token) {",
+									"    pm.environment.set('jwt_token', jsonData.access_token);",
 									"    console.log('JWT token saved to environment');",
+									"}",
+									"if (jsonData.refresh_token) {",
+									"    pm.environment.set('refresh_token', jsonData.refresh_token);",
+									"    console.log('Refresh token saved to environment');",
 									"}",
 									"",
 									"pm.test('Status code is 200', function() {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test('Response has token', function() {",
-									"    pm.expect(jsonData.token).to.exist;",
+									"pm.test('Response has access token', function() {",
+									"    pm.expect(jsonData.access_token).to.exist;",
+									"});",
+									"",
+									"pm.test('Response has refresh token', function() {",
+									"    pm.expect(jsonData.refresh_token).to.exist;",
 									"});"
 								],
 								"type": "text/javascript"
@@ -317,7 +325,51 @@
 					}
 				},
 				{
-					"name": "5. Get Todos with JWT",
+					"name": "5. Refresh Token While Logged In",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has new access token', function() {",
+									"    pm.expect(jsonData.access_token).to.exist;",
+									"    pm.environment.set('jwt_token', jsonData.access_token);",
+									"    console.log('New access token saved to environment');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8000/auth/refresh",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["auth", "refresh"]
+						}
+					}
+				},
+				{
+					"name": "6. Get Todos with JWT",
 					"event": [
 						{
 							"listen": "test",
@@ -350,14 +402,22 @@
 					}
 				},
 				{
-					"name": "6. Logout with JWT",
+					"name": "7. Logout with JWT",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
+									"// Save the current token as blacklisted_token for later tests",
+									"pm.environment.set('blacklisted_token', pm.environment.get('jwt_token'));",
+									"",
 									"pm.test('Status code is 200', function() {",
 									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Logout successful message', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.equal('Logout successful');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -366,6 +426,22 @@
 					],
 					"request": {
 						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
 						"url": {
 							"raw": "http://localhost:8000/auth/logout",
 							"protocol": "http",
@@ -376,7 +452,7 @@
 					}
 				},
 				{
-					"name": "7. Try to Get Todos with Invalid JWT (Should Fail)",
+					"name": "8. Try to Get Todos with Invalid JWT (Should Fail)",
 					"event": [
 						{
 							"listen": "test",
@@ -388,7 +464,7 @@
 									"",
 									"pm.test('Error message is correct', function() {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.error).to.contain('Invalid JWT token');",
+									"    pm.expect(jsonData.error).to.include('Invalid JWT token');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -414,7 +490,87 @@
 					}
 				},
 				{
-					"name": "8. Get API Documentation with JWT",
+					"name": "9. Try to Refresh with Invalidated Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.equal('Invalid refresh token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8000/auth/refresh",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["auth", "refresh"]
+						}
+					}
+				},
+				{
+					"name": "10. Try to Use Blacklisted Token (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.equal('You have been logged out. Please log in again.');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{blacklisted_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8000/todos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["todos"]
+						}
+					}
+				},
+				{
+					"name": "11. Get API Documentation with JWT",
 					"event": [
 						{
 							"listen": "test",
