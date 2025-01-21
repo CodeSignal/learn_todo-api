@@ -1,29 +1,43 @@
-from flask import jsonify, request
+from flask import jsonify, request, current_app
 from models.todo import Todo
-import json
-import os
 
-# Load initial todos from JSON file
-def load_initial_todos():
-    json_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'initial_todos.json')
-    with open(json_path, 'r') as f:
-        data = json.load(f)
-        loaded_todos = {}
-        for todo_data in data['todos']:
+class TodoService:
+    _instance = None
+    _initialized = False
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(TodoService, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if not TodoService._initialized:
+            self.todos = {}
+            self.next_id = 1
+            self._initialize_todos()
+            TodoService._initialized = True
+
+    def _initialize_todos(self):
+        """Initialize todos from the app config."""
+        initial_todos = current_app.config.get('initial_todos', [])
+        for todo_data in initial_todos:
             todo_id = todo_data['id']
-            loaded_todos[todo_id] = Todo(
+            self.todos[todo_id] = Todo(
                 todo_id,
                 todo_data['title'],
                 todo_data['done'],
                 todo_data['description']
             )
-        # Calculate next_id based on the highest id in the todos
-        next_id = max(todo.id for todo in loaded_todos.values()) + 1
-        return loaded_todos, next_id
+            # Update next_id to be greater than the highest existing id
+            self.next_id = max(self.next_id, todo_id + 1)
 
-todos, next_id = load_initial_todos()
+    @classmethod
+    def get_instance(cls):
+        """Get the singleton instance of TodoService."""
+        if cls._instance is None:
+            cls._instance = TodoService()
+        return cls._instance
 
-class TodoService:
     @staticmethod
     def get_all_todos(request):
         """Get all todos with optional filtering and pagination.
@@ -43,6 +57,7 @@ class TodoService:
             GET /todos?title=buy - Returns todos with titles starting with 'buy'
             GET /todos?page=1&limit=10 - Returns first 10 todos
         """
+        service = TodoService.get_instance()
         done = request.args.get("done", type=str)
         title_prefix = request.args.get("title", type=str)
         page = request.args.get("page", type=int)
@@ -51,7 +66,7 @@ class TodoService:
         if done is not None:
             done = done.lower() == 'true'
 
-        results = list(todos.values())
+        results = list(service.todos.values())
 
         if done is not None:
             results = [todo for todo in results if todo.done == done]
@@ -69,27 +84,29 @@ class TodoService:
 
     @staticmethod
     def get_todo(todo_id):
-        todo = todos.get(todo_id)
+        service = TodoService.get_instance()
+        todo = service.todos.get(todo_id)
         if todo is None:
             return jsonify({"error": "Todo not found"}), 404
         return jsonify(todo.to_dict()), 200
 
     @staticmethod
     def add_todo(request):
-        global next_id
+        service = TodoService.get_instance()
         data = request.get_json()
         if not data or "title" not in data:
             return jsonify({"error": "Invalid request. 'title' is required."}), 400
 
-        todo = Todo(next_id, data["title"], data.get("done", False), data.get("description"))
-        todos[next_id] = todo
-        next_id += 1
+        todo = Todo(service.next_id, data["title"], data.get("done", False), data.get("description"))
+        service.todos[service.next_id] = todo
+        service.next_id += 1
         return jsonify(todo.to_dict()), 201
 
     @staticmethod
     def edit_todo(todo_id, request):
+        service = TodoService.get_instance()
         data = request.get_json()
-        todo = todos.get(todo_id)
+        todo = service.todos.get(todo_id)
         if todo is None:
             return jsonify({"error": "Todo not found"}), 404
         if not data or "title" not in data or "done" not in data or "description" not in data:
@@ -102,8 +119,9 @@ class TodoService:
 
     @staticmethod
     def patch_todo(todo_id, request):
+        service = TodoService.get_instance()
         data = request.get_json()
-        todo = todos.get(todo_id)
+        todo = service.todos.get(todo_id)
         if todo is None:
             return jsonify({"error": "Todo not found"}), 404
         if not data:
@@ -116,7 +134,8 @@ class TodoService:
 
     @staticmethod
     def delete_todo(todo_id):
-        if todo_id not in todos:
+        service = TodoService.get_instance()
+        if todo_id not in service.todos:
             return jsonify({"error": "Todo not found"}), 404
-        del todos[todo_id]
+        del service.todos[todo_id]
         return '', 204
