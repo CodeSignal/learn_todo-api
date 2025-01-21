@@ -155,24 +155,50 @@
 			"name": "JWT Authentication",
 			"item": [
 				{
-					"name": "Signup with JWT",
+					"name": "1. Try to Get Todos without JWT (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.equal('JWT token is required');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "http://localhost:8000/todos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["todos"]
+						}
+					}
+				},
+				{
+					"name": "2. Signup with JWT",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"if (jsonData.token) {",
-									"    pm.environment.set('jwt_token', jsonData.token);",
-									"    console.log('JWT token saved to environment');",
-									"}",
-									"",
 									"pm.test('Status code is 201', function() {",
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test('Response has token', function() {",
-									"    pm.expect(jsonData.token).to.exist;",
+									"pm.test('Signup successful message', function() {",
+									"    pm.expect(jsonData.message).to.equal('Signup successful. Please log in to continue.');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -202,7 +228,49 @@
 					}
 				},
 				{
-					"name": "Login with JWT",
+					"name": "3. Signup with Same Username (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test('Status code is 400', function() {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    pm.expect(jsonData.error).to.equal('Username already exists');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpass123\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8000/auth/signup",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["auth", "signup"]
+						}
+					}
+				},
+				{
+					"name": "4. Login with JWT",
 					"event": [
 						{
 							"listen": "test",
@@ -249,7 +317,7 @@
 					}
 				},
 				{
-					"name": "Get Todos with JWT",
+					"name": "5. Get Todos with JWT",
 					"event": [
 						{
 							"listen": "test",
@@ -282,19 +350,14 @@
 					}
 				},
 				{
-					"name": "Get Todos without JWT (Should Fail)",
+					"name": "6. Logout with JWT",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test('Status code is 401', function() {",
-									"    pm.response.to.have.status(401);",
-									"});",
-									"",
-									"pm.test('Error message is correct', function() {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.error).to.equal('JWT token is required');",
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -302,18 +365,18 @@
 						}
 					],
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"url": {
-							"raw": "http://localhost:8000/todos",
+							"raw": "http://localhost:8000/auth/logout",
 							"protocol": "http",
 							"host": ["localhost"],
 							"port": "8000",
-							"path": ["todos"]
+							"path": ["auth", "logout"]
 						}
 					}
 				},
 				{
-					"name": "Get Todos with Invalid JWT (Should Fail)",
+					"name": "7. Try to Get Todos with Invalid JWT (Should Fail)",
 					"event": [
 						{
 							"listen": "test",
@@ -351,33 +414,7 @@
 					}
 				},
 				{
-					"name": "Logout with JWT",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status code is 200', function() {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"url": {
-							"raw": "http://localhost:8000/auth/logout",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["auth", "logout"]
-						}
-					}
-				},
-				{
-					"name": "Get API Documentation with JWT",
+					"name": "8. Get API Documentation with JWT",
 					"event": [
 						{
 							"listen": "test",
@@ -430,7 +467,7 @@
 			"name": "Session Authentication",
 			"item": [
 				{
-					"name": "1. Get Todos without Session (Should Fail)",
+					"name": "1. Try to Get Todos without Login (Should Fail)",
 					"event": [
 						{
 							"listen": "test",
@@ -467,8 +504,13 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"var jsonData = pm.response.json();",
 									"pm.test('Status code is 201', function() {",
 									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Signup successful message', function() {",
+									"    pm.expect(jsonData.message).to.equal('Signup successful. Please log in to continue.');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -498,40 +540,19 @@
 					}
 				},
 				{
-					"name": "3. Get Todos with Session",
+					"name": "3. Signup with Same Username (Should Fail)",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test('Status code is 200', function() {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"url": {
-							"raw": "http://localhost:8000/todos",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["todos"]
-						}
-					}
-				},
-				{
-					"name": "4. Logout with Session",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status code is 200', function() {",
-									"    pm.response.to.have.status(200);",
+									"var jsonData = pm.response.json();",
+									"pm.test('Status code is 400', function() {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    pm.expect(jsonData.error).to.equal('Username already exists');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -540,55 +561,40 @@
 					],
 					"request": {
 						"method": "POST",
-						"url": {
-							"raw": "http://localhost:8000/auth/logout",
-							"protocol": "http",
-							"host": ["localhost"],
-							"port": "8000",
-							"path": ["auth", "logout"]
-						}
-					}
-				},
-				{
-					"name": "5. Get Todos after Logout (Should Fail)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Status code is 401', function() {",
-									"    pm.response.to.have.status(401);",
-									"});",
-									"",
-									"pm.test('Error message is correct', function() {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.error).to.equal('Valid session required');",
-									"});"
-								],
-								"type": "text/javascript"
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
 							}
-						}
-					],
-					"request": {
-						"method": "GET",
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"testpass123\"\n}"
+						},
 						"url": {
-							"raw": "http://localhost:8000/todos",
+							"raw": "http://localhost:8000/auth/signup",
 							"protocol": "http",
 							"host": ["localhost"],
 							"port": "8000",
-							"path": ["todos"]
+							"path": ["auth", "signup"]
 						}
 					}
 				},
 				{
-					"name": "6. Login with Session",
+					"name": "4. Login with Session",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
+									"var jsonData = pm.response.json();",
 									"pm.test('Status code is 200', function() {",
 									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Login successful message', function() {",
+									"    pm.expect(jsonData.message).to.equal('Login successful');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -618,7 +624,7 @@
 					}
 				},
 				{
-					"name": "7. Get Todos after Login",
+					"name": "5. Get Todos with Session",
 					"event": [
 						{
 							"listen": "test",
@@ -626,6 +632,63 @@
 								"exec": [
 									"pm.test('Status code is 200', function() {",
 									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "http://localhost:8000/todos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["todos"]
+						}
+					}
+				},
+				{
+					"name": "6. Logout with Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "http://localhost:8000/auth/logout",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["auth", "logout"]
+						}
+					}
+				},
+				{
+					"name": "7. Try to Get Todos after Logout (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.equal('Valid session required');",
 									"});"
 								],
 								"type": "text/javascript"
