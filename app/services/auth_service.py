@@ -70,6 +70,11 @@ def login_user(data):
     if not data or "username" not in data or "password" not in data:
         return jsonify({"error": "Username and password are required"}), 400
     
+    # Find user and validate credentials
+    user = next((user for user in users if user.username == data["username"]), None)
+    if not user or not user.check_password(data["password"]):
+        return jsonify({"error": "Invalid username or password"}), 401
+    
     if auth_config.auth_method == AuthMethod.JWT:
         access_token, refresh_token = generate_jwt_token(data["username"])
         return jsonify({
