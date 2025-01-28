@@ -1,0 +1,11 @@
+{
+  "method": "api_key",
+  "description": "API Key authentication required for protected endpoints.",
+  "how_to_authenticate": "Include your API key in the X-API-Key header for all requests.",
+  "example": {
+    "headers": {
+      "X-API-Key": "your-api-key-here"
+    }
+  },
+  "protected_endpoints": ["/todos/*", "/notes/*"]
+} 
