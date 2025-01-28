@@ -137,22 +137,46 @@ def _get_auth_docs():
         AuthMethod.JWT: {
             "method": "jwt",
             "description": "JWT (JSON Web Token) authentication required for protected endpoints.",
-            "how_to_authenticate": "1. Get a token via /auth/login or /auth/signup\n2. Include the token in the Authorization header.",
+            "how_to_authenticate": (
+                "1. Create account via /auth/signup\n"
+                "2. Get tokens via /auth/login\n"
+                "3. Include the access token in the Authorization header\n"
+                "4. Use /auth/refresh with refresh token to get new tokens\n"
+                "5. Use /auth/logout with both tokens to end session"
+            ),
             "endpoints": {
                 "/auth/signup": {
                     "method": "POST",
                     "body": {"username": "string", "password": "string"},
-                    "response": {"token": "string"}
+                    "response": {"message": "Signup successful. Please log in to continue."}
                 },
                 "/auth/login": {
                     "method": "POST",
                     "body": {"username": "string", "password": "string"},
-                    "response": {"token": "string"}
+                    "response": {
+                        "message": "Login successful",
+                        "access_token": "string",
+                        "refresh_token": "string"
+                    }
+                },
+                "/auth/refresh": {
+                    "method": "POST",
+                    "body": {"refresh_token": "string"},
+                    "response": {
+                        "access_token": "string",
+                        "refresh_token": "string"
+                    }
+                },
+                "/auth/logout": {
+                    "method": "POST",
+                    "headers": {"Authorization": "Bearer <access_token>"},
+                    "body": {"refresh_token": "string"},
+                    "response": {"message": "string"}
                 }
             },
             "example": {
                 "headers": {
-                    "Authorization": "Bearer your-jwt-token-here"
+                    "Authorization": "Bearer your-jwt-access-token-here"
                 }
             },
             "protected_endpoints": ["/todos/*", "/notes/*"]
@@ -160,18 +184,26 @@ def _get_auth_docs():
         AuthMethod.SESSION: {
             "method": "session",
             "description": "Session-based authentication required for protected endpoints.",
-            "how_to_authenticate": "1. Login via /auth/login or signup via /auth/signup\n2. Session cookie will be automatically managed by your browser.",
+            "how_to_authenticate": (
+                "1. Create account via /auth/signup\n"
+                "2. Login via /auth/login to create a session\n"
+                "3. Session cookie will be automatically managed by your browser\n"
+                "4. Use /auth/logout to end your session"
+            ),
             "endpoints": {
                 "/auth/signup": {
                     "method": "POST",
-                    "body": {"username": "string", "password": "string"}
+                    "body": {"username": "string", "password": "string"},
+                    "response": {"message": "Signup successful. Please log in to continue."}
                 },
                 "/auth/login": {
                     "method": "POST",
-                    "body": {"username": "string", "password": "string"}
+                    "body": {"username": "string", "password": "string"},
+                    "response": {"message": "Login successful"}
                 },
                 "/auth/logout": {
-                    "method": "POST"
+                    "method": "POST",
+                    "response": {"message": "Logout successful"}
                 }
             },
             "protected_endpoints": ["/todos/*", "/notes/*"]
