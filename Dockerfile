@@ -7,6 +7,7 @@ COPY requirements.txt .
 # Copy configuration and initial data files
 COPY auth_config.yml .
 COPY initial_todos.json .
+COPY initial_users.json .
 
 # Install Python dependencies listed in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
