@@ -5,9 +5,9 @@ from routes.docs import docs_bp
 from routes.notes import notes_bp
 from routes.auth import auth_bp, init_auth_routes
 from middleware.auth_middleware import AuthMiddleware
-from utils.config import load_config, load_initial_todos
+from utils.config import load_config, load_initial_todos, load_initial_users
 from utils.auth import setup_auth_config
-from services.auth_service import init_auth_service
+from services.auth_service import init_auth_service, add_user
 import secrets
 
 def create_app(auth_config):
@@ -55,6 +55,11 @@ def create_app(auth_config):
 
     return app
 
+def seed_users():
+    for user_data in load_initial_users():
+        if not add_user(user_data["username"], user_data["password"]):
+            print(f"Error: Failed to add user on init")
+
 if __name__ == "__main__":
     try:
         # Load authentication configuration from config file
@@ -62,6 +67,7 @@ if __name__ == "__main__":
         
         # Set up authentication based on configuration
         auth_config = setup_auth_config(auth_method, secret)
+        seed_users()
         
         # Initialize auth service
         init_auth_service(auth_config)

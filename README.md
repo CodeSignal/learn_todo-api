@@ -61,7 +61,9 @@ The API's authentication is configured through `auth_config.yml` in the root dir
 
 ## Initial Data
 
-The project comes with `initial_todos.json`, which contains a set of predefined todo items that serve as sample data. This file includes example todos with various states (completed and pending) to help you get started with testing the API immediately.
+The project comes with initial data, seeded at startup:
+- Todos: `initial_todos.json`
+- Users: `initial_users.json`
 
 ## Running the API
 
