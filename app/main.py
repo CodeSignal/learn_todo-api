@@ -8,6 +8,7 @@ from middleware.auth_middleware import AuthMiddleware
 from utils.config import load_config, load_initial_todos, load_initial_users
 from utils.auth import setup_auth_config
 from services.auth_service import init_auth_service, add_user
+from flasgger import Swagger
 import secrets
 
 def create_app(auth_config):
@@ -32,7 +33,26 @@ def create_app(auth_config):
     app.config['SECRET_KEY'] = secrets.token_hex(32)  # Generate secure random secret key
     app.config['auth_config'] = auth_config
     app.config['initial_todos'] = load_initial_todos()  # Load initial todos from config file
-
+    
+    # Configure Swagger
+    template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "Todo API",
+            "description": "A RESTful API for managing todos and notes",
+            "version": "1.0.0"
+        }
+    }
+    
+    app.config['SWAGGER'] = {
+        'title': 'Todo API',
+        'uiversion': 3,
+        'specs_route': '/',
+        'url_prefix': '/swagger'
+    }
+    
+    Swagger(app, template=template)
+    
     # Set up authentication
     init_auth_routes(auth_config)
     auth_middleware = AuthMiddleware(auth_config)
