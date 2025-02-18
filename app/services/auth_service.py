@@ -3,7 +3,7 @@ import datetime
 import secrets
 from config.auth_config import AuthConfig, AuthMethod
 from models.user import User
-from flask import session, jsonify
+from flask import session, jsonify, request
 
 # --- Configuration ---
 auth_config = None  # Global configuration object set during initialization
@@ -16,6 +16,7 @@ def init_auth_service(config: AuthConfig):
 users = []  # In-memory storage for user objects
 refresh_tokens = {}  # Maps refresh tokens to usernames
 blacklisted_tokens = set()  # Set of invalidated access tokens
+invalidated_sessions = set()  # Set of invalidated session IDs
 
 # --- User Management ---
 def is_username_taken(username):
@@ -112,9 +113,17 @@ def logout_jwt(access_token, refresh_token):
     return jsonify({"message": "Logout successful"})
 
 def logout_session():
-    """Clear user session if authenticated"""
+    """Clear user session if authenticated and invalidate the session cookie"""
     if not session.get("authenticated"):
         return jsonify({"error": "Not authenticated"}), 401
     
+    response = jsonify({"message": "Logout successful"})
+    
+    # Add current session ID to invalidated sessions set
+    if request.cookies.get('session'):
+        invalidated_sessions.add(request.cookies.get('session'))
+    
     session.clear()
-    return jsonify({"message": "Logout successful"}) 
+    # Set the session cookie to expire immediately
+    response.set_cookie('session', '', expires=0)
+    return response 

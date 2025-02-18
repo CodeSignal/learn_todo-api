@@ -933,7 +933,40 @@
 					}
 				},
 				{
-					"name": "6. Logout with Session",
+					"name": "6. Save Session Cookie Before Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Save the current session cookie for later testing",
+									"const sessionCookie = pm.cookies.get('session');",
+									"if (sessionCookie) {",
+									"    pm.environment.set('old_session', sessionCookie);",
+									"    console.log('Saved session cookie:', sessionCookie);",
+									"}",
+									"",
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "http://localhost:8000/todos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["todos"]
+						}
+					}
+				},
+				{
+					"name": "7. Logout with Session",
 					"event": [
 						{
 							"listen": "test",
@@ -959,7 +992,7 @@
 					}
 				},
 				{
-					"name": "7. Try to Get Todos after Logout (Should Fail)",
+					"name": "8. Try to Get Todos with Normal Request after Logout (Should Fail)",
 					"event": [
 						{
 							"listen": "test",
@@ -990,7 +1023,45 @@
 					}
 				},
 				{
-					"name": "8. Get API Documentation with Session",
+					"name": "9. Try to Get Todos with Old Session Cookie (Should Fail)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function() {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.equal('Session has been invalidated');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "session={{old_session}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:8000/todos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["todos"]
+						}
+					}
+				},
+				{
+					"name": "10. Get API Documentation with Session",
 					"event": [
 						{
 							"listen": "test",
