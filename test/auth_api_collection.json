@@ -529,7 +529,60 @@
 					}
 				},
 				{
-					"name": "7d. Successful Logout with Both Tokens",
+					"name": "7d. Try Logout with Invalid JSON (Should Return JSON Error)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400', function() {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response is JSON', function() {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test('Error message is correct', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.error).to.include('400 Bad Request');",
+									"    pm.expect(jsonData.error).to.include('The browser (or proxy) sent a request that this server could not understand');",
+									"    pm.expect(jsonData.endpoint).to.equal('/auth/logout');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{ invalid json here"
+						},
+						"url": {
+							"raw": "http://localhost:8000/auth/logout",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "8000",
+							"path": ["auth", "logout"]
+						}
+					}
+				},
+				{
+					"name": "7e. Successful Logout with Both Tokens",
 					"event": [
 						{
 							"listen": "test",
