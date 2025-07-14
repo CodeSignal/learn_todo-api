@@ -1,5 +1,6 @@
 from flask import jsonify, request, current_app
 from models.todo import Todo
+import json
 
 class TodoService:
     _instance = None
@@ -157,7 +158,6 @@ class TodoService:
         Returns:
             tuple: JSON response and status code
         """
-        import json
 
         service = TodoService.get_instance()
 

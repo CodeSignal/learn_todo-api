@@ -1,7 +1,8 @@
 import jwt
+import json
 import datetime
 import secrets
-from config.auth_config import AuthConfig, AuthMethod
+from config.auth_config import AuthConfig
 from models.user import User
 from flask import session, jsonify, request
 
@@ -165,7 +166,6 @@ def reset_users(file_content):
     Returns:
         tuple: JSON response and status code
     """
-    import json
 
     global users
 

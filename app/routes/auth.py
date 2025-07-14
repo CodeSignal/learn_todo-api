@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from config.auth_config import AuthMethod, AuthConfig
+from middleware.auth_middleware import reset_auth_middleware
 from services.auth_service import (
     signup_user,
     validate_refresh_token,
@@ -9,7 +10,8 @@ from services.auth_service import (
     login_session,
     logout_jwt,
     logout_session,
-    reset_users
+    reset_users,
+    reset_auth_service,
 )
 
 # --- Configuration ---
@@ -191,9 +193,6 @@ def reset_config():
               type: string
               example: "Failed to update configuration: Internal error"
     """
-    from flask import current_app
-    from services.auth_service import reset_auth_service
-    from middleware.auth_middleware import reset_auth_middleware
 
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 415
@@ -295,7 +294,6 @@ def reset_users_endpoint():
               type: string
               example: "No file provided"
     """
-    from flask import request, jsonify
 
     # Check if file was uploaded
     if 'file' not in request.files:

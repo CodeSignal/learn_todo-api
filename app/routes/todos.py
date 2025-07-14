@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from services.todo_service import TodoService
 
 todos_bp = Blueprint("todos", __name__)
@@ -321,7 +321,6 @@ def reset_todos():
               type: string
               example: "No file provided"
     """
-    from flask import request, jsonify
 
     # Check if file was uploaded
     if 'file' not in request.files:
