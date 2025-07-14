@@ -254,3 +254,105 @@ def delete_todo(todo_id):
         description: Todo not found
     """
     return TodoService.delete_todo(todo_id)
+
+@todos_bp.route("/reset", methods=["POST"])
+def reset_todos():
+    """Reset todos with data from uploaded JSON file
+    ---
+    tags:
+      - todos
+    summary: Reset all todos with data from JSON file
+    description: |
+      Replaces all existing todos with data from an uploaded JSON file.
+      The original initial_todos.json file remains unchanged.
+      This is useful for testing different todo datasets or resetting to a clean state.
+
+      The uploaded file should be in the same format as initial_todos.json:
+      {
+        "todos": [
+          {
+            "id": 1,
+            "title": "Todo title",
+            "done": false,
+            "description": "Optional description"
+          }
+        ]
+      }
+    consumes:
+      - multipart/form-data
+    parameters:
+      - in: formData
+        name: file
+        type: file
+        required: true
+        description: JSON file containing todos data
+    responses:
+      200:
+        description: Todos reset successfully
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Todos reset successfully. Loaded 4 todos."
+            todos_count:
+              type: integer
+              example: 4
+            next_id:
+              type: integer
+              example: 5
+            filename:
+              type: string
+              example: "my_todos.json"
+      400:
+        description: Invalid file format or data
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid JSON format: Expecting ',' delimiter"
+      415:
+        description: No file provided
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "No file provided"
+    """
+    from flask import request, jsonify
+
+    # Check if file was uploaded
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided. Please upload a JSON file."}), 400
+
+    file = request.files['file']
+
+    # Check if file was actually selected
+    if file.filename == '':
+        return jsonify({"error": "No file selected. Please select a JSON file."}), 400
+
+    # Check file extension
+    if not file.filename.lower().endswith('.json'):
+        return jsonify({"error": "Invalid file type. Please upload a JSON file."}), 400
+
+    try:
+        # Read file content
+        file_content = file.read().decode('utf-8')
+
+        # Reset todos with file content
+        response, status_code = TodoService.reset_todos(file_content)
+
+        # Add filename to successful response
+        if status_code == 200:
+            response_data = response.get_json()
+            response_data['filename'] = file.filename
+            return jsonify(response_data), status_code
+
+        return response, status_code
+
+    except UnicodeDecodeError:
+        return jsonify({"error": "Invalid file encoding. Please ensure the file is UTF-8 encoded."}), 400
+    except Exception as e:
+        return jsonify({"error": f"Failed to process file: {str(e)}"}), 500

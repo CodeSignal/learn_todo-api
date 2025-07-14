@@ -50,7 +50,7 @@ class TodoService:
 
         Returns:
             tuple: JSON response containing list of todos and HTTP status code
-            
+
         Examples:
             GET /todos - Returns all todos
             GET /todos?done=true - Returns all completed todos
@@ -139,3 +139,87 @@ class TodoService:
             return jsonify({"error": "Todo not found"}), 404
         del service.todos[todo_id]
         return '', 204
+
+    @staticmethod
+    def reset_todos(file_content):
+        """Reset todos with new data from uploaded JSON file.
+
+        This method:
+        1. Parses the JSON file content
+        2. Validates the file format and todo data
+        3. Clears all existing todos
+        4. Loads new todos from the file data
+        5. Updates the next_id counter appropriately
+
+        Args:
+            file_content (str): JSON file content as string
+
+        Returns:
+            tuple: JSON response and status code
+        """
+        import json
+
+        service = TodoService.get_instance()
+
+        # Parse JSON content
+        try:
+            data = json.loads(file_content)
+        except json.JSONDecodeError as e:
+            return jsonify({"error": f"Invalid JSON format: {str(e)}"}), 400
+
+        # Validate file structure - expect {"todos": [...]} format
+        if not isinstance(data, dict) or 'todos' not in data:
+            return jsonify({"error": "Invalid file format. Expected JSON with 'todos' array field."}), 400
+
+        new_todos_data = data['todos']
+
+        # Validate the todos data
+        if not isinstance(new_todos_data, list):
+            return jsonify({"error": "Invalid todos format. Expected an array of todo objects."}), 400
+
+        # Validate each todo item
+        for i, todo_data in enumerate(new_todos_data):
+            if not isinstance(todo_data, dict):
+                return jsonify({"error": f"Invalid todo at index {i}. Expected an object."}), 400
+
+            required_fields = ['id', 'title', 'done']
+            for field in required_fields:
+                if field not in todo_data:
+                    return jsonify({"error": f"Missing required field '{field}' in todo at index {i}."}), 400
+
+            # Validate field types
+            if not isinstance(todo_data['id'], int):
+                return jsonify({"error": f"Invalid 'id' type in todo at index {i}. Expected integer."}), 400
+            if not isinstance(todo_data['title'], str):
+                return jsonify({"error": f"Invalid 'title' type in todo at index {i}. Expected string."}), 400
+            if not isinstance(todo_data['done'], bool):
+                return jsonify({"error": f"Invalid 'done' type in todo at index {i}. Expected boolean."}), 400
+            if 'description' in todo_data and not isinstance(todo_data['description'], str):
+                return jsonify({"error": f"Invalid 'description' type in todo at index {i}. Expected string."}), 400
+
+        # Check for duplicate IDs
+        ids = [todo['id'] for todo in new_todos_data]
+        if len(ids) != len(set(ids)):
+            return jsonify({"error": "Duplicate todo IDs found in the data."}), 400
+
+        # Clear existing todos
+        service.todos.clear()
+        service.next_id = 1
+
+        # Load new todos
+        for todo_data in new_todos_data:
+            todo_id = todo_data['id']
+            service.todos[todo_id] = Todo(
+                todo_id,
+                todo_data['title'],
+                todo_data['done'],
+                todo_data.get('description', '')
+            )
+            # Update next_id to be greater than the highest existing id
+            service.next_id = max(service.next_id, todo_id + 1)
+
+        return jsonify({
+            "message": f"Todos reset successfully. Loaded {len(new_todos_data)} todos.",
+            "todos_count": len(new_todos_data),
+            "next_id": service.next_id
+        }), 200
