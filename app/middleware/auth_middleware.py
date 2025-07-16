@@ -54,11 +54,38 @@ class AuthMiddleware:
         """Validate session authentication"""
         if not session.get("authenticated"):
             return jsonify({"error": "Valid session required"}), 401
-            
+
         # Check if session has been invalidated
         current_session = request.cookies.get('session')
         if current_session and current_session in invalidated_sessions:
             session.clear()
             return jsonify({"error": "Session has been invalidated"}), 401
-            
-        return None 
+
+        return None
+
+# Global middleware instance for runtime updates
+_global_middleware_instance = None
+
+def reset_auth_middleware(new_config: AuthConfig):
+    """Reset the global auth middleware instance with new configuration.
+
+    This function updates the middleware configuration that's used
+    by all protected blueprints. Due to Flask's blueprint registration
+    mechanics, we update the global instance that blueprints reference.
+
+    Args:
+        new_config: New AuthConfig instance
+    """
+    global _global_middleware_instance
+    if _global_middleware_instance:
+        _global_middleware_instance.config = new_config
+        print(f"Auth middleware reset with new configuration: {new_config.auth_method.value}")
+
+def get_auth_middleware_instance():
+    """Get the global middleware instance."""
+    return _global_middleware_instance
+
+def set_auth_middleware_instance(instance):
+    """Set the global middleware instance."""
+    global _global_middleware_instance
+    _global_middleware_instance = instance
