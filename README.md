@@ -4,7 +4,7 @@ Todo API is a simple RESTful service for managing a to-do list, allowing users t
 
 ## Prerequisites
 
-- [Docker](https://www.docker.com/get-started)  
+- [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/)
 
 ## Quick Start
@@ -73,3 +73,15 @@ python app/main.py
 ```
 
 The API will read the configuration from `auth_config.yml`. If the file doesn't exist, it will default to no authentication.
+
+## Sidecar Usage
+
+The application is containerized and exposes port `8000`, making it suitable for use as a sidecar in various deployment scenarios.
+
+The Docker container exposes port `8000`, allowing the API to be accessed from other containers or services in the same network.
+
+- **For PR testing**: `ghcr.io/codesignal/learn_todo-api:<pr-number>`
+  - Example: `ghcr.io/codesignal/learn_todo-api:pr-8`
+- **For main branch**: `ghcr.io/codesignal/learn_todo-api:latest`
+
+The sidecar can be used in base tasks and other containerized environments where you need a todo API service.
