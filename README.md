@@ -78,7 +78,7 @@ The API will read the configuration from `auth_config.yml`. If the file doesn't 
 
 The application is containerized and exposes port `8000`, making it suitable for use as a sidecar in various deployment scenarios.
 
-The Docker container exposes port `8000`, allowing the API to be accessed from other containers or services in the same network.
+The Docker container exposes port `8000`, allowing the API to be accessed from other containers or services in the same network. In order to enable it in the task, you need to add the following to the task configuration:
 
 - **For PR testing**: `ghcr.io/codesignal/learn_todo-api:<pr-number>`
   - Example: `ghcr.io/codesignal/learn_todo-api:pr-8`
